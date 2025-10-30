@@ -1,5 +1,5 @@
 <?php
-
+set_time_limit(60);
 use App\Kernel;
 
 require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
