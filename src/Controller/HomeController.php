@@ -1,5 +1,4 @@
 <?php
-// src/Controller/HomeController.php
 
 namespace App\Controller;
 
@@ -13,7 +12,6 @@ class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(ProductRepository $productRepository): Response
     {
-        // Si l'utilisateur n'est pas connecté, rediriger vers la page de login
         if (!$this->getUser()) {
             return $this->redirectToRoute('app_login');
         }

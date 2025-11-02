@@ -73,6 +73,73 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+ * Récupère les produits par catégorie avec filtres
+ */
+public function findByCategoryWithFilters(int $categoryId, array $filters = []): array
+{
+    $qb = $this->createQueryBuilder('p')
+        ->join('p.category', 'c')
+        ->where('c.id = :categoryId')
+        ->setParameter('categoryId', $categoryId);
+
+    // Price filter
+    if (!empty($filters['minPrice'])) {
+        $qb->andWhere('p.price >= :minPrice')
+           ->setParameter('minPrice', $filters['minPrice']);
+    }
+
+    if (!empty($filters['maxPrice'])) {
+        $qb->andWhere('p.price <= :maxPrice')
+           ->setParameter('maxPrice', $filters['maxPrice']);
+    }
+
+    // Origin filter
+    if (!empty($filters['origin'])) {
+        $qb->andWhere('p.origin = :origin')
+           ->setParameter('origin', $filters['origin']);
+    }
+
+    // Stock filter
+    if (!empty($filters['inStock']) && $filters['inStock'] === 'true') {
+        $qb->andWhere('p.stock > 0');
+    }
+
+    // Sorting
+    switch ($filters['sort'] ?? 'newest') {
+        case 'price_asc':
+            $qb->orderBy('p.price', 'ASC');
+            break;
+        case 'price_desc':
+            $qb->orderBy('p.price', 'DESC');
+            break;
+        case 'name':
+            $qb->orderBy('p.name', 'ASC');
+            break;
+        case 'stock':
+            $qb->orderBy('p.stock', 'DESC');
+            break;
+        default: // newest
+            $qb->orderBy('p.createdAt', 'DESC');
+            break;
+    }
+
+    return $qb->getQuery()->getResult();
+}
+
+/**
+ * Get available origins for filtering
+ */
+public function findAvailableOrigins(): array
+{
+    return $this->createQueryBuilder('p')
+        ->select('DISTINCT p.origin')
+        ->where('p.origin IS NOT NULL')
+        ->andWhere('p.stock > 0')
+        ->orderBy('p.origin', 'ASC')
+        ->getQuery()
+        ->getSingleColumnResult();
+}
     //    /**
     //     * @return Product[] Returns an array of Product objects
     //     */

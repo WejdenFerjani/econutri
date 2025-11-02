@@ -1,0 +1,280 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la Commande - EcoNutri{% endblock %}
+
+{% block body %}    
+    <section class="order-hero" style="background-image: url('{{ asset('images/order-banner.jpg') }}');">
+    <div class="container">
+        <h1 class="order-hero-title">Détails de la Commande num : {{ order.id }}</h1>
+    </div>
+</section>
+    <div class="container mt-4">
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Informations Client</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nom Client:</strong></p>
+                    <p>{{ order.user.nom }} {{ order.user.prenom }}</p>
+                    <p><strong>Email Client:</strong></p>
+                    <p>{{ order.user.email }}</p>
+                    <p><strong>Numéro Client:</strong></p>
+                    <p>{{ order.user.telephone }}</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Adresse de Livraison</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ order.shippingAddress }}</p>
+                    <p>{{ order.shippingCity }} {{ order.shippingZipCode }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Total de la Commande</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Qté</th>
+                                <th>Prix</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.orderItems %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.unitPrice }} TND</td>
+                                <td>{{ (item.unitprice * item.quantity)|number_format(2, '.', ',') }} TND</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <hr>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Sous-total:</span>
+                            <span>{{ order.totalAmount }} TND</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Frais de Livraison:</span>
+                            <span>{{ order.shippingCost }} TND</span>
+                        </div>
+                    </div>
+
+                    <hr class="border-2">
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between fw-bold fs-5">
+                            <span>Total (TND):</span>
+                            <span>{{ order.grandTotal }} TND</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <p><strong>Statut:</strong> 
+                            {% if order.status == 'pending' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% elseif order.status == 'confirmed' %}
+                                <span class="badge bg-info">Confirmée</span>
+                            {% elseif order.status == 'delivered' %}
+                                <span class="badge bg-success">Livrée</span>
+                            {% else %}
+                                <span class="badge bg-danger">Annulée</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ path('app_my_orders') }}" class="btn btn-secondary btn-lg">Retour à Mes Commandes</a>
+    </div>
+</div>
+
+<style>
+/* Order Hero Section */
+.order-hero {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+.order-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.order-hero-title {
+    color: white;
+    font-size: 3.5rem;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+/* Modern Cards */
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #6ba75c, #4a8c3a) !important;
+    color: white;
+    border: none;
+    padding: 1.5rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Modern Table */
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+    background: linear-gradient(135deg, #6ba75c, #4a8c3a);
+    color: white;
+    border: none;
+    padding: 1.25rem;
+    font-weight: 600;
+}
+
+.table td {
+    padding: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: white;
+}
+
+.table tbody tr:hover {
+    background: #f7fafc;
+}
+
+/* Modern Buttons */
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268, #495057);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+}
+
+/* Status Badges */
+.badge {
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+}
+
+.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #138496) !important;
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+}
+
+/* Remove top padding */
+.container.mt-5.pt-5 {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Page Title */
+.mb-4 {
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 2rem !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .order-hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .order-hero {
+        height: 300px;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .order-hero-title {
+        font-size: 2rem;
+    }
+    
+    .order-hero {
+        height: 250px;
+    }
+}
+</style>
+{% endblock %}

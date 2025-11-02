@@ -41,6 +41,11 @@ class Product
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column(length: 255, nullable: true)]
+        private ?string $slug = null;
+
+        public function getSlug(): ?string { return $this->slug; }
+        public function setSlug(string $slug): self { $this->slug = $slug; return $this; }
 
     public function __construct()
     {
@@ -151,4 +156,5 @@ class Product
         $this->createdAt = $createdAt;
         return $this;
     }
+    
 }
