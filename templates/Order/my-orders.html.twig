@@ -12,41 +12,61 @@
 
 <div class="container mt-4">
     {% if orders is empty %}
-        <div class="alert alert-info">
-            <p>Vous n'avez pas encore de commande.</p>
-            <a href="{{ path('app_home') }}" class="btn btn-primary">Commencer vos achats</a>
+        <div class="empty-orders">
+            <div class="empty-icon">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <h2>Aucune commande pour le moment</h2>
+            <p>Découvrez nos produits et commencez vos achats</p>
+            <a href="{{ path('app_home') }}" class="btn btn-primary">
+                <i class="fas fa-shopping-cart"></i>
+                Découvrir nos produits
+            </a>
         </div>
     {% else %}
+        <div class="orders-summary">
+            <div class="summary-card">
+                <div class="summary-item">
+                    <span class="summary-label">Total des commandes</span>
+                    <span class="summary-value">{{ orders|length }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Dernière commande</span>
+                    <span class="summary-value">{{ orders|first.createdAt|date('d/m/Y') }}</span>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead class="table-header-cart">
                     <tr>
                         <th>N° Commande</th>
                         <th>Date</th>
-                        <th>Total</th>
-                        <th>Statut</th>
+                        <th>Montant Total</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for order in orders %}
                     <tr>
-                        <td>#{{ order.id }}</td>
-                        <td>{{ order.createdAt|date('d/m/Y H:i') }}</td>
-                        <td>{{ order.grandTotal }} TND</td>
-                        <td>
-                            {% if order.status == 'pending' %}
-                                <span class="badge bg-warning">En attente</span>
-                            {% elseif order.status == 'confirmed' %}
-                                <span class="badge bg-info">Confirmée</span>
-                            {% elseif order.status == 'delivered' %}
-                                <span class="badge bg-success">Livrée</span>
-                            {% else %}
-                                <span class="badge bg-danger">Annulée</span>
-                            {% endif %}
+                        <td class="order-number">
+                            <i class="fas fa-receipt"></i>
+                            #{{ order.id }}
                         </td>
-                        <td>
-                            <a href="{{ path('app_order_details', {'id': order.id}) }}" class="btn btn-sm btn-primary">Détails</a>
+                        <td class="order-date">
+                            <i class="fas fa-calendar"></i>
+                            {{ order.createdAt|date('d/m/Y H:i') }}
+                        </td>
+                        <td class="order-total">
+                            <i class="fas fa-coins"></i>
+                            {{ order.grandTotal }} TND
+                        </td>
+                        <td class="order-actions">
+                            <a href="{{ path('app_order_details', {'id': order.id}) }}" class="btn-details">
+                                <i class="fas fa-eye"></i>
+                                Voir les détails
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -56,19 +76,31 @@
     {% endif %}
 </div>
 
-
 <style>
+/* Variables CSS */
+:root {
+    --primary-color: #4a8c3a;
+    --primary-dark: #3a6e2d;
+    --primary-light: #6ba75c;
+    --secondary-color: #f8f9fa;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --border-color: #e2e8f0;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --radius: 16px;
+}
+
 /* Order Hero Section */
 .order-hero {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    height: 400px;
+    height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
 }
 
 .order-hero::before {
@@ -78,48 +110,122 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, rgba(74, 140, 58, 0.8), rgba(107, 167, 92, 0.7));
 }
 
 .order-hero-title {
     color: white;
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     font-weight: bold;
     position: relative;
     z-index: 1;
     text-align: center;
 }
 
-/* Modern Table */
+/* Container principal */
+.container.mt-4 {
+    padding: 0 1rem;
+    max-width: 1200px;
+}
+
+/* État vide */
+.empty-orders {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--primary-light);
+    margin-bottom: 1.5rem;
+}
+
+.empty-orders h2 {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.empty-orders p {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+/* Carte de résumé */
+.orders-summary {
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--secondary-color);
+    border-radius: 12px;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.summary-value {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+/* Table moderne */
 .table-responsive {
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     overflow: hidden;
     margin-bottom: 2rem;
+    background: white;
 }
 
 .table {
     margin-bottom: 0;
     border: none;
+    width: 100%;
 }
 
 .table-header-cart {
-    background: linear-gradient(135deg, #6ba75c, #4a8c3a) !important;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light)) !important;
     color: white;
     border: none;
 }
 
 .table-header-cart th {
     border: none;
-    padding: 1.25rem;
+    padding: 1.5rem;
     font-weight: 600;
     font-size: 1rem;
-    text-align: center;
+    text-align: left;
 }
 
 .table tbody tr {
     transition: all 0.3s ease;
-    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
 }
 
 .table tbody tr:hover {
@@ -129,88 +235,86 @@
 }
 
 .table tbody td {
-    padding: 1.25rem;
+    padding: 1.5rem;
     vertical-align: middle;
-    border-bottom: 1px solid #e9ecef;
+    border: none;
 }
 
-/* Modern Badges */
-.badge {
-    padding: 0.6rem 1rem;
-    border-radius: 20px;
+/* Colonnes spécifiques */
+.order-number, .order-date, .order-total {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.order-number i, .order-date i, .order-total i {
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+    width: 16px;
+}
+
+.order-total {
     font-weight: 600;
-    font-size: 0.85rem;
+    color: var(--primary-color);
+    font-size: 1.1rem;
 }
 
-.bg-warning {
-    background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+/* Bouton de détails */
+.btn-details {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(107, 167, 92, 0.3);
+    border: none;
 }
 
-.bg-info {
-    background: linear-gradient(135deg, #17a2b8, #138496) !important;
+.btn-details:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(107, 167, 92, 0.4);
+    color: white;
+    text-decoration: none;
 }
 
-.bg-success {
-    background: linear-gradient(135deg, #28a745, #1e7e34) !important;
-}
-
-.bg-danger {
-    background: linear-gradient(135deg, #dc3545, #c82333) !important;
-}
-
-/* Modern Buttons */
+/* Bouton principal */
 .btn-primary {
-    background: linear-gradient(135deg, #6ba75c, #4a8c3a);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     border: none;
     border-radius: 8px;
-    padding: 0.5rem 1rem;
     font-weight: 600;
     transition: all 0.3s ease;
     box-shadow: 0 2px 10px rgba(107, 167, 92, 0.3);
+    text-decoration: none;
+    color: white;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #5a9048, #3a7c2a);
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(107, 167, 92, 0.4);
-}
-
-/* Alert Styling */
-.alert-info {
-    border: none;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #cce7ff, #b3d9ff);
-    color: #004085;
-    box-shadow: 0 4px 15px rgba(0, 64, 133, 0.1);
-    border-left: 6px solid #17a2b8;
-    padding: 2rem;
-}
-
-.alert-info .btn-primary {
-    margin-top: 1rem;
-}
-
-/* Remove top padding */
-.container.mt-5.pt-5 {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
-
-/* Page Title */
-.mb-4 {
-    color: #2d3748;
-    font-weight: 700;
-    margin-bottom: 2rem !important;
+    color: white;
+    text-decoration: none;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .order-hero-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
     
     .order-hero {
-        height: 300px;
+        height: 250px;
     }
     
     .table-header-cart th {
@@ -221,23 +325,66 @@
     .table tbody td {
         padding: 1rem;
     }
+    
+    .summary-card {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-details {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .order-number i, 
+    .order-date i, 
+    .order-total i {
+        display: none;
+    }
 }
 
 @media (max-width: 576px) {
     .order-hero-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
     
     .order-hero {
-        height: 250px;
+        height: 200px;
     }
     
     .table-responsive {
         margin: 0 -15px;
         border-radius: 0;
     }
+    
+    .empty-orders {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+    }
 }
+
+/* Animation de chargement */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table tbody tr {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.5s; }
 </style>
-
-
 {% endblock %}

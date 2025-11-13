@@ -65,7 +65,8 @@ class CartController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $quantity = $request->query->getInt('quantity', 1);
+        // Read quantity from POST first (form submit), then fallback to query param
+        $quantity = $request->request->getInt('quantity', $request->query->getInt('quantity', 1));
 
         if ($quantity < 1) {
             $quantity = 1;

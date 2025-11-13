@@ -61,10 +61,17 @@
         .product-image {
             width: 100%;
             height: 200px;
-            background-size: cover;
-            background-position: center;
+            overflow: hidden;
             border-radius: 10px;
             margin-bottom: 1rem;
+        }
+
+        .product-card-img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: center;
         }
         
         .product-name {
@@ -256,10 +263,9 @@
                             Produits
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 1}) }}">Légumes Bio</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 2}) }}">Fruits Bio</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 3}) }}">Produits Laitiers</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 4}) }}">Grains & Céréales</a></li>
+                            {% for cat in get_categories() %}
+                                <li><a class="dropdown-item" href="{{ path('app_category', {id: cat.id}) }}">{{ cat.name }}</a></li>
+                            {% endfor %}
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -336,26 +342,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Origine -->
-                            <div class="mb-4">
-                                <h6>Origine</h6>
-                                <div class="form-check">
-                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="Local" id="local">
-                                    <label class="form-check-label" for="local">Local</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="France" id="france">
-                                    <label class="form-check-label" for="france">France</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="Tunisie" id="tunisie">
-                                    <label class="form-check-label" for="tunisie">Tunisie</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="Italie" id="italie">
-                                    <label class="form-check-label" for="italie">Italie</label>
-                                </div>
-                            </div>
+                            <!-- Origine filter removed -->
                             
                             <!-- Disponibilité -->
                             <div class="mb-4">
@@ -402,9 +389,7 @@
                                 {% endif %}
                             {% endif %}
                             
-                            {% if app.request.query.get('origin') %}
-                                <span class="badge bg-primary">Origine: {{ app.request.query.get('origin') }}</span>
-                            {% endif %}
+                            {# Origine active badge removed #}
                             
                             {% if app.request.query.get('inStock') %}
                                 <span class="badge bg-primary">En stock seulement</span>
@@ -417,14 +402,16 @@
                         {% for product in products %}
                         <div class="col-md-6 col-lg-4">
                             <div class="product-card">
-                                <div class="product-image" style="background-image: url('{{ asset('images/' ~ product.image) }}');"></div>
+                                <div class="product-image">
+                                    <img src="{{ asset('images/' ~ product.image) }}" alt="{{ product.name }}" class="product-card-img">
+                                </div>
                                 <h3 class="product-name">{{ product.name }}</h3>
                                 <div class="product-meta">
                                     <span class="product-origin">{{ product.origin }}</span>
                                     <span class="product-stock">
-                                        {% if product.stock > 10 %}
+                                        {% if (product.stock|default(0)) > 10 %}
                                             <span class="stock-badge">En stock</span>
-                                        {% elseif product.stock > 0 %}
+                                        {% elseif (product.stock|default(0)) > 0 %}
                                             <span class="stock-badge stock-low">Stock faible</span>
                                         {% else %}
                                             <span class="stock-badge stock-out">Rupture</span>
@@ -434,14 +421,13 @@
                                 <p class="product-description">{{ product.description }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="product-price">{{ product.price }} TND</span>
-                                    <span class="text-muted">/{{ product.unit }}</span>
                                 </div>
                                 
                                 <a href="{{ path('app_product', {id: product.id}) }}" class="btn btn-view-product">
                                     <i class="fas fa-eye me-2"></i>Voir le produit
                                 </a>
                                 
-                                {% if product.stock > 0 %}
+                                {% if (product.stock|default(0)) > 0 %}
                                     <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="d-inline w-100">
                                         <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart_' ~ product.id) }}">
                                         <button type="submit" class="btn btn-add-cart">
@@ -501,7 +487,7 @@
         const resetButton = document.getElementById('resetFilters');
         
         // Auto-submit form when filters change
-        const filterInputs = document.querySelectorAll('.price-filter, .origin-filter, .stock-filter, .sort-select');
+        const filterInputs = document.querySelectorAll('.price-filter, .stock-filter, .sort-select');
         filterInputs.forEach(input => {
             input.addEventListener('change', function() {
                 filterForm.submit();
@@ -525,14 +511,7 @@
             }
         }
         
-        // Set origin
-        const origin = urlParams.get('origin');
-        if (origin) {
-            const originRadio = document.querySelector(`input[name="origin"][value="${origin}"]`);
-            if (originRadio) {
-                originRadio.checked = true;
-            }
-        }
+        // Origine filter removed; no client-side origin restore
         
         // Set stock
         const inStock = urlParams.get('inStock');

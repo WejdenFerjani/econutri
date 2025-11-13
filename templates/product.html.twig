@@ -16,7 +16,8 @@
     
     <style>
         .product-detail-section {
-            padding: 100px 0 50px;
+            /* Reduced top padding so the hero moves higher on the page */
+            padding: 60px 0 30px;
             background-color: var(--background-light);
             min-height: 100vh;
         }
@@ -26,11 +27,14 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
+            /* lift the hero slightly to appear closer to the navbar */
+            margin-top: -30px;
         }
         
         .product-image-large {
             width: 100%;
-            height: 400px;
+            /* Increased height for a larger hero image */
+            height: 540px;
             background-size: cover;
             background-position: center;
         }
@@ -52,6 +56,13 @@
             color: var(--primary-color);
             margin-bottom: 1.5rem;
         }
+        .product-short-description {
+            font-size: 1rem;
+            color: #444;
+            margin-bottom: .75rem;
+            line-height: 1.4;
+            font-style: italic;
+        }
         
         .product-description {
             color: var(--text-light);
@@ -62,29 +73,55 @@
         
         .product-meta-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+            /* Force two columns for desktop/tablet */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            align-items: start;
         }
-        
+
+        /* Responsive: single column on small screens */
+        @media (max-width: 768px) {
+            .product-meta-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .meta-item {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
+            background: #ffffff;
+            border: 1px solid #eef2f5;
+            padding: 0.75rem 0.9rem;
+            border-radius: 8px;
+            text-align: left;
+            box-shadow: 0 2px 6px rgba(16,24,40,0.03);
         }
-        
+
         .meta-label {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.8rem;
+            color: #6b7280; /* muted */
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
-        
+
         .meta-value {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            color: var(--text-dark);
+            color: #111827; /* dark */
         }
+
+        .availability-badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .availability-in { background: #16a34a; } /* green */
+        .availability-low { background: #f59e0b; } /* amber */
+        .availability-out { background: #ef4444; } /* red */
         
         .quantity-selector {
             display: flex;
@@ -148,50 +185,9 @@
             transform: none;
         }
         
-        .btn-wishlist {
-            background: transparent;
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
+        /* wishlist button styles removed (button removed from template) */
         
-        .btn-wishlist:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        .nutrition-info {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            margin-top: 3rem;
-        }
-        
-        .nutrition-title {
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: var(--text-dark);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 0.5rem;
-        }
-        
-        .nutrition-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-        
-        .nutrition-item {
-            text-align: center;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
+        /* nutrition styles removed because nutrition block removed per request */
         
         .related-products {
             margin-top: 4rem;
@@ -230,11 +226,10 @@
                         </a>
                         
                             <ul class="dropdown-menu">
-    <li><a class="dropdown-item" href="{{ path('app_category', {id: 1}) }}">Légumes Bio</a></li>
-    <li><a class="dropdown-item" href="{{ path('app_category', {id: 2}) }}">Fruits Bio</a></li>
-    <li><a class="dropdown-item" href="{{ path('app_category', {id: 3}) }}">Produits Laitiers</a></li>
-    <li><a class="dropdown-item" href="{{ path('app_category', {id: 4}) }}">Grains & Céréales</a></li>
-</ul>
+                                {% for cat in get_categories() %}
+                                    <li><a class="dropdown-item" href="{{ path('app_category', {id: cat.id}) }}">{{ cat.name }}</a></li>
+                                {% endfor %}
+                            </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Conseils</a>
@@ -278,70 +273,13 @@
     <!-- Product Detail Section -->
     <section class="product-detail-section">
         <div class="container">
-            <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="mb-4">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
-                    <li class="breadcrumb-item"><a href="{{ path('app_category', {id: product.category.id}) }}">{{ product.category.name }}</a></li>
-                    <li class="breadcrumb-item active">{{ product.name }}</li>
-                </ol>
-            </nav>
+            {# Breadcrumb removed per request (Accueil / Catégorie / Produit) #}
             
             <div class="row">
                 <div class="col-lg-8">
-                    <div class="product-card-detail">
+                        <div class="product-card-detail">
                         <div class="product-image-large" style="background-image: url('{{ asset('images/' ~ product.image) }}');"></div>
                     </div>
-                    
-                    <!-- Product Description -->
-                    <div class="nutrition-info">
-                        <h3 class="nutrition-title">Description détaillée</h3>
-                        <p class="product-description">{{ product.description }}</p>
-                        
-                        <div class="product-meta-grid">
-                            <div class="meta-item">
-                                <div class="meta-label">Catégorie</div>
-                                <div class="meta-value">{{ product.category.name }}</div>
-                            </div>
-                            <div class="meta-item">
-                                <div class="meta-label">Origine</div>
-                                <div class="meta-value">{{ product.origin }}</div>
-                            </div>
-                            <div class="meta-item">
-                                <div class="meta-label">Conditionnement</div>
-                                <div class="meta-value">/{{ product.unit }}</div>
-                            </div>
-                            <div class="meta-item">
-                                <div class="meta-label">Stock</div>
-                                <div class="meta-value">{{ product.stock }} disponibles</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Nutrition Information -->
-                    {% if product.nutrition %}
-                    <div class="nutrition-info">
-                        <h3 class="nutrition-title">Valeurs nutritionnelles</h3>
-                        <div class="nutrition-grid">
-                            <div class="nutrition-item">
-                                <div class="meta-label">Calories</div>
-                                <div class="meta-value">{{ product.nutrition.calories }} kcal</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="meta-label">Protéines</div>
-                                <div class="meta-value">{{ product.nutrition.proteins }}g</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="meta-label">Glucides</div>
-                                <div class="meta-value">{{ product.nutrition.carbs }}g</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="meta-label">Fibres</div>
-                                <div class="meta-value">{{ product.nutrition.fiber }}g</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
                 
                 <!-- Sidebar - Product Actions -->
@@ -349,47 +287,72 @@
                     <div class="product-info">
                         <h1 class="product-title">{{ product.name }}</h1>
                         <div class="product-price">{{ product.price }} TND</div>
-                        
-                        <div class="product-meta-grid">
+
+                        {# Short description under title (first 200 chars) #}
+                        {% if product.description %}
+                            <p class="product-short-description mt-2">{{ product.description|length > 200 ? product.description|slice(0,200) ~ '...' : product.description }}</p>
+                        {% endif %}
+
+                        <!-- Visible product metadata: Category + Origin + Unit + Stock + Available since -->
+                        <div class="product-meta-grid" style="margin-top:1rem;">
                             <div class="meta-item">
-                                <div class="meta-label">Agriculture</div>
-                                <div class="meta-value">Biologique</div>
+                                <div class="meta-label">Catégorie</div>
+                                <div class="meta-value">{{ product.category.name }}</div>
                             </div>
                             <div class="meta-item">
-                                <div class="meta-label">Saison</div>
-                                <div class="meta-value">{{ product.season ?? 'Toute l\'année' }}</div>
+                                <div class="meta-label">Origine</div>
+                                <div class="meta-value">{{ product.origin ?: 'Local' }}</div>
                             </div>
+                            {# Unité removed per request - show season elsewhere if needed #}
+                            <div class="meta-item">
+                                <div class="meta-label">Stock</div>
+                                <div class="meta-value">{{ product.stock|default('—') }} disponibles
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Disponibilité</div>
+                                <div class="meta-value">
+                                    {% if (product.stock|default(0)) > 10 %}
+                                        <span class="availability-badge availability-in">En stock</span>
+                                    {% elseif (product.stock|default(0)) > 0 %}
+                                        <span class="availability-badge availability-low">Stock faible</span>
+                                    {% else %}
+                                        <span class="availability-badge availability-out">Rupture</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {# Saisonnalité removed per option C (do not display) #}
                         </div>
                         
                         <p class="product-description">{{ product.description }}</p>
-                        
+
                         <!-- Quantity Selector -->
                         <div class="quantity-selector">
                             <span>Quantité :</span>
-                            <div class="quantity-btn">-</div>
-                            <input type="number" class="quantity-input" value="1" min="1" max="{{ product.stock }}">
-                            <div class="quantity-btn">+</div>
+                            <div role="button" tabindex="0" class="quantity-btn" aria-label="Réduire la quantité">-</div>
+                            <input type="number" class="quantity-input" value="1" min="1" max="{{ product.stock|default(1) }}">
+                            <div role="button" tabindex="0" class="quantity-btn" aria-label="Augmenter la quantité">+</div>
                         </div>
-                        
-                        <!-- Action Buttons - UPDATED: Using product.id -->
-                        {% if product.stock > 0 %}
-                            <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="d-inline w-100">
+
+                        <!-- Action Buttons - Using product.id -->
+                        {% if (product.stock|default(0)) > 0 %}
+                            <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="d-inline w-100 add-to-cart-form mb-2">
                                 <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart_' ~ product.id) }}">
+                                {# Hidden quantity field updated by JS from the visible quantity-input #}
+                                <input type="hidden" name="quantity" class="quantity-hidden" value="1">
                                 <button type="submit" class="btn btn-add-cart-large">
                                     <i class="fas fa-shopping-cart me-2"></i>
                                     Ajouter au panier
                                 </button>
                             </form>
+
+                            {# Wishlist removed per request #}
                         {% else %}
                             <button class="btn btn-add-cart-large disabled" disabled>
                                 <i class="fas fa-shopping-cart me-2"></i>
                                 Rupture de stock
                             </button>
                         {% endif %}
-
-                        <button class="btn btn-wishlist">
-                            <i class="fas fa-heart me-2"></i>Ajouter à la wishlist
-                        </button>
                     </div>
                 </div>
             </div>
@@ -406,7 +369,6 @@
                             <p class="product-description">{{ relatedProduct.description }}</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="product-price">{{ relatedProduct.price }} TND</span>
-                                <span class="text-muted">/{{ relatedProduct.unit }}</span>
                             </div>
                             <!-- UPDATED: Using relatedProduct.id instead of slug -->
                             <a href="{{ path('app_product', {id: relatedProduct.id}) }}" class="btn btn-add-cart mt-3">
@@ -436,26 +398,55 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Quantity selector functionality
+        // Quantity selector functionality (robust)
         document.addEventListener('DOMContentLoaded', function() {
             const quantityInput = document.querySelector('.quantity-input');
-            const minusBtn = document.querySelector('.quantity-btn:first-child');
-            const plusBtn = document.querySelector('.quantity-btn:last-child');
-            
+            const btns = Array.from(document.querySelectorAll('.quantity-btn'));
+            if (!quantityInput || btns.length < 2) return;
+
+            const [minusBtn, plusBtn] = btns;
+
+            function setValue(newVal) {
+                const min = parseInt(quantityInput.min) || 1;
+                const max = parseInt(quantityInput.max) || 1;
+                let v = parseInt(newVal) || min;
+                if (v < min) v = min;
+                if (v > max) v = max;
+                quantityInput.value = v;
+            }
+
             minusBtn.addEventListener('click', function() {
-                let value = parseInt(quantityInput.value);
-                if (value > 1) {
-                    quantityInput.value = value - 1;
-                }
+                const cur = parseInt(quantityInput.value) || 1;
+                setValue(cur - 1);
             });
-            
             plusBtn.addEventListener('click', function() {
-                let value = parseInt(quantityInput.value);
-                const max = parseInt(quantityInput.max);
-                if (value < max) {
-                    quantityInput.value = value + 1;
-                }
+                const cur = parseInt(quantityInput.value) || 1;
+                setValue(cur + 1);
             });
+
+            // allow keyboard +/- when focused
+            minusBtn.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); minusBtn.click(); }
+            });
+            plusBtn.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); plusBtn.click(); }
+            });
+
+            // keep value within bounds when user types directly
+            quantityInput.addEventListener('change', function() {
+                setValue(quantityInput.value);
+            });
+
+            // sync visible quantity into hidden form field before submit
+            const addToCartForm = document.querySelector('.add-to-cart-form');
+            if (addToCartForm) {
+                addToCartForm.addEventListener('submit', function(e) {
+                    const hidden = addToCartForm.querySelector('.quantity-hidden');
+                    if (hidden) {
+                        hidden.value = quantityInput.value;
+                    }
+                });
+            }
         });
     </script>
 </body>

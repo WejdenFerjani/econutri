@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\ProductRepository;
-use App\Repository\CategoryRepository; // Add this import
+use App\Repository\CategoryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,7 +43,7 @@ class CategoryController extends AbstractController
         }
 
         // Find products with filters
-        $products = $productRepository->findByCategoryWithFilters($id, $filters);
+        $products = $productRepository->findByCategoryWithFilters($category->getId(), $filters);
 
         return $this->render('category.html.twig', [
             'category' => [

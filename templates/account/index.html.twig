@@ -437,10 +437,9 @@
                             Produits
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 1}) }}">Légumes Bio</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 2}) }}">Fruits Bio</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 3}) }}">Produits Laitiers</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 4}) }}">Grains & Céréales</a></li>
+                            {% for cat in get_categories() %}
+                                <li><a class="dropdown-item" href="{{ path('app_category', {id: cat.id}) }}">{{ cat.name }}</a></li>
+                            {% endfor %}
                         </ul>
                     </li>
                     <li class="nav-item">

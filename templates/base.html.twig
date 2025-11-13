@@ -10,8 +10,13 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         
         {% block stylesheets %}
-            <!-- Lien vers votre CSS moderne -->
+            <!-- Lien vers CSS  -->
             <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+            {# On auth pages we also load the home styles so the small header/logo uses the same rules (#navbar-brand) as the homepage #}
+            {% set current_route = app.request.attributes.get('_route') %}
+            {% if current_route in ['app_login', 'app_register'] %}
+                <link rel="stylesheet" href="{{ asset('styles/home.css') }}">
+            {% endif %}
         {% endblock %}
 
         {% block javascripts %}
@@ -66,91 +71,115 @@
             {% endfor %}
         </div>
 
-        <!-- WHITE NAVBAR (same as your home page) -->
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ path('app_home') }}">
-                    <i class="fas fa-leaf me-2"></i>EcoNutri
-                </a>
-                
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{{ path('app_home') }}">Accueil</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#about">À Propos</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="productsDropdown" role="button" data-bs-toggle="dropdown">
-                                Produits
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#recommandes">Recommandés</a></li>
-                                <li><a class="dropdown-item" href="#nouveautes">Nouveautés</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Conseils</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Réclamation</a>
-                        </li>
-                    </ul>
+        {# Show full navbar on most pages, but for login/register show only the logo header #}
+        {% set current_route = app.request.attributes.get('_route') %}
+        {% if current_route in ['app_login', 'app_register'] %}
+            <header class="py-3 bg-white shadow-sm">
+                <div class="container d-flex align-items-center">
+                    <a class="navbar-brand" href="{{ path('app_home') }}">
+                        <i class="fas fa-leaf me-2"></i>EcoNutri
+                    </a>
+                </div>
+            </header>
+        {% else %}
+            <!-- WHITE NAVBAR (same as your home page) -->
+            <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+                <div class="container">
+                    <a class="navbar-brand" href="{{ path('app_home') }}">
+                        <i class="fas fa-leaf me-2"></i>EcoNutri
+                    </a>
                     
-                    <div class="navbar-nav">
-                        {% if app.user %}
-                            <!-- Icône Mon Compte -->
-                            <a class="nav-link" href="{{ path('app_account') }}" title="Mon Compte">
-                                <span class="d-none d-sm-inline">Mon Compte</span>
-                                <i class="fas fa-user-circle fa-lg ms-1"></i>
-                            </a>
-                            
-                            <!-- Icône Panier -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_home') }}#categories">
+                                    <i class="fas fa-th-large me-1"></i>Catégories
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-shopping-bag me-1"></i>Produits
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path('app_home') }}#recommandes">
+                                            <i class="fas fa-star me-2"></i>Recommandés
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path('app_home') }}#nouveautes">
+                                            <i class="fas fa-fire me-2"></i>Nouveautés
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('app_home') }}#conseils">
+                                    <i class="fas fa-heartbeat me-1"></i>Conseils
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_reclamation') }}">
+                        <i class="fas fa-comment-dots me-1"></i>Réclamation
+                    </a>
+                </li>
+                        </ul>
+                        
+                        <div class="navbar-nav">
+                            {% if app.user %}
+                                <!-- Icône Mon Compte -->
+                                <a class="nav-link" href="{{ path('app_account') }}" title="Mon Compte">
+                                    <span class="d-none d-sm-inline">Mon Compte</span>
+                                    <i class="fas fa-user-circle fa-lg ms-1"></i>
+                                </a>
+                                
+                                <!-- Icône Panier -->
                                 <a class="nav-link" href="{{ path('app_cart_index') }}" title="Panier">
-
-                                <span class="d-none d-sm-inline">Panier</span>
-                                <i class="fas fa-shopping-cart ms-1"></i>
-                                <span class="badge bg-success">{{ get_cart_item_count() }}</span>
-                            </a>
-                            
-                            <!-- Icône Déconnexion -->
-                            <a class="nav-link" href="{{ path('app_logout') }}" title="Déconnexion">
-                                <span class="d-none d-sm-inline">Déconnexion</span>
-                                <i class="fas fa-sign-out-alt ms-1"></i>
-                            </a>
-                            
-                            {% if is_granted('ROLE_ADMIN') %}
-                                <a href="{{ path('admin_dashboard') }}" class="btn btn-warning btn-sm ms-2">
-                                    <i class="fas fa-tachometer-alt"></i> Dashboard Admin
+                                    <span class="d-none d-sm-inline">Panier</span>
+                                    <i class="fas fa-shopping-cart ms-1"></i>
+                                    <span class="badge bg-success">{{ get_cart_item_count() }}</span>
+                                </a>
+                                
+                                <!-- Icône Déconnexion -->
+                                <a class="nav-link" href="{{ path('app_logout') }}" title="Déconnexion">
+                                    <span class="d-none d-sm-inline">Déconnexion</span>
+                                    <i class="fas fa-sign-out-alt ms-1"></i>
+                                </a>
+                                
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <a href="{{ path('admin_dashboard') }}" class="btn btn-warning btn-sm ms-2">
+                                        <i class="fas fa-tachometer-alt"></i> Dashboard Admin
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a class="nav-link" href="{{ path('app_login') }}">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Connexion
+                                </a>
+                                <a class="nav-link" href="{{ path('app_register') }}">
+                                    <i class="fas fa-user-plus me-1"></i>Inscription
+                                </a>
+                                
+                                <!-- Icône Panier (for non-logged in users) -->
+                                <a class="nav-link" href="{{ path('app_login') }}" title="Panier">
+                                    <span class="d-none d-sm-inline">Panier</span>
+                                    <i class="fas fa-shopping-cart ms-1"></i>
+                                    <span class="badge bg-success">0</span>
                                 </a>
                             {% endif %}
-                        {% else %}
-                            <a class="nav-link" href="{{ path('app_login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Connexion
-                            </a>
-                            <a class="nav-link" href="{{ path('app_register') }}">
-                                <i class="fas fa-user-plus me-1"></i>Inscription
-                            </a>
-                            
-                            <!-- Icône Panier (for non-logged in users) -->
-                            <a class="nav-link" href="{{ path('app_login') }}" title="Panier">
-                                <span class="d-none d-sm-inline">Panier</span>
-                                <i class="fas fa-shopping-cart ms-1"></i>
-                                <span class="badge bg-success">0</span>
-                            </a>
-                        {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        {% endif %}
 
         <!-- Contenu principal -->
-        <main style="padding-top: 80px;"> <!-- Added padding to account for fixed navbar -->
+        {# Adjust top padding depending on header type (full navbar vs minimal header) #}
+        {% set current_route = app.request.attributes.get('_route') %}
+        <main style="padding-top: {{ current_route in ['app_login','app_register'] ? '30px' : '80px' }};"> <!-- Added padding to account for fixed navbar -->
             {% block body %}{% endblock %}
         </main>
 

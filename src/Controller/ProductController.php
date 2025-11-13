@@ -42,9 +42,10 @@ class ProductController extends AbstractController
             'origin' => $product->getOrigin(),
             'stock' => $product->getStock(),
             'unit' => $product->getUnit(),
-            'season' => 'Toute l\'année',
+            // 'season' removed per option C: do not include season in product data
             'description' => $product->getDescription(),
             'fullDescription' => $product->getDescription(),
+            'createdAt' => $product->getCreatedAt(),
             'nutrition' => [
                 'calories' => 100,
                 'proteins' => 5,
@@ -63,7 +64,7 @@ class ProductController extends AbstractController
                     'price' => $relatedProduct->getPrice(),
                     'image' => $relatedProduct->getImage(),
                     'description' => $relatedProduct->getDescription(),
-                    'unit' => $relatedProduct->getUnit()
+                    // 'unit' removed per UI decision
                 ];
             }
         }

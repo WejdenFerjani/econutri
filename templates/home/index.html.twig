@@ -8,7 +8,400 @@
     <link href="{{ asset('styles/home.css') }}" rel="stylesheet">
 {% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scroll pour les ancres
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        const offsetTop = target.getBoundingClientRect().top + window.pageYOffset - 80;
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // Gestion du formulaire diabète - VERSION AMÉLIORÉE
+            const diabetesForm = document.getElementById('diabetes-form');
+            if (diabetesForm) {
+                diabetesForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Afficher un indicateur de chargement
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
+                    submitBtn.disabled = true;
+
+                    // Récupérer les données du formulaire
+                    const formData = new FormData(this);
+                    const data = {
+                        Pregnancies: parseInt(formData.get('pregnancies')),
+                        Glucose: parseFloat(formData.get('glucose')),
+                        BloodPressure: parseFloat(formData.get('blood_pressure')),
+                        SkinThickness: parseFloat(formData.get('skin_thickness')),
+                        Insulin: parseFloat(formData.get('insulin')),
+                        BMI: parseFloat(formData.get('bmi')),
+                        DiabetesPedigreeFunction: parseFloat(formData.get('diabetes_pedigree')),
+                        Age: parseInt(formData.get('age'))
+                    };
+
+                    try {
+                        // Appeler l'API Flask
+                        const response = await fetch('http://localhost:5000/predict', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+
+                        // Afficher le résultat avec recommandations
+                        showPredictionResult(result.prediction, data);
+
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        showPredictionResult('error', null, 'Erreur lors de l\'analyse. Vérifiez que l\'API Flask est démarrée.');
+                    } finally {
+                        // Réactiver le bouton
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Fonction pour afficher le résultat avec recommandations
+            function showPredictionResult(prediction, formData = null, customMessage = null) {
+                // Créer ou mettre à jour l'affichage du résultat
+                let resultDiv = document.getElementById('prediction-result');
+                
+                if (!resultDiv) {
+                    resultDiv = document.createElement('div');
+                    resultDiv.id = 'prediction-result';
+                    resultDiv.className = 'prediction-result';
+                    diabetesForm.parentNode.insertBefore(resultDiv, diabetesForm.nextSibling);
+                }
+
+                let message, resultClass, recommendations, productsTitle;
+
+                if (prediction === 'Diabetes' || prediction === 'Diabète') {
+                    message = customMessage || '🔴 Résultat: Risque de Diabète détecté';
+                    resultClass = 'prediction-diabetes';
+                    recommendations = `
+                        <div class="recommendations-section">
+                            <h5><i class="fas fa-heartbeat"></i> Recommandations Santé</h5>
+                            <ul>
+                                <li>Consultez un médecin pour un diagnostic complet</li>
+                                <li>Adoptez une alimentation équilibrée et pauvre en sucres</li>
+                                <li>Pratiquez une activité physique régulière</li>
+                                <li>Surveillez votre poids et votre IMC</li>
+                            </ul>
+                        </div>
+                        <div class="products-recommendations">
+                            <h5><i class="fas fa-leaf"></i> Produits Recommandés</h5>
+                            <p>Pour vous accompagner dans une alimentation saine :</p>
+                            <div class="recommended-products-grid">
+                                <div class="recommended-product">
+                                    <i class="fas fa-seedling"></i>
+                                    <span>Légumes verts frais</span>
+                                </div>
+                                <div class="recommended-product">
+                                    <i class="fas fa-apple-alt"></i>
+                                    <span>Fruits à faible indice glycémique</span>
+                                </div>
+                                <div class="recommended-product">
+                                    <i class="fas fa-bread-slice"></i>
+                                    <span>Céréales complètes bio</span>
+                                </div>
+                                <div class="recommended-product">
+                                    <i class="fas fa-fish"></i>
+                                    <span>Protéines maigres</span>
+                                </div>
+                            </div>
+                            <a href="#recommandes" class="btn btn-recommendation">
+                                <i class="fas fa-shopping-basket"></i>
+                                Découvrir nos produits santé
+                            </a>
+                        </div>
+                    `;
+                    productsTitle = 'Produits Recommandés pour le Diabète';
+
+                } else if (prediction === 'No Diabetes' || prediction === 'Pas de Diabète') {
+                    message = customMessage || '🟢 Résultat: Aucun risque de diabète détecté';
+                    resultClass = 'prediction-no-diabetes';
+                    recommendations = `
+                        <div class="recommendations-section">
+                            <h5><i class="fas fa-check-circle"></i> Excellente nouvelle !</h5>
+                            <ul>
+                                <li>Continuez vos bonnes habitudes alimentaires</li>
+                                <li>Maintenez une activité physique régulière</li>
+                                <li>Faites des bilans de santé annuels</li>
+                                <li>Préservez votre capital santé</li>
+                            </ul>
+                        </div>
+                        <div class="products-recommendations">
+                            <h5><i class="fas fa-leaf"></i> Pour Maintenir Votre Santé</h5>
+                            <p>Découvrez nos produits pour une alimentation équilibrée :</p>
+                            <div class="recommended-products-grid">
+                                <div class="recommended-product">
+                                    <i class="fas fa-carrot"></i>
+                                    <span>Légumes de saison bio</span>
+                                </div>
+                                <div class="recommended-product">
+                                    <i class="fas fa-apple-alt"></i>
+                                    <span>Fruits frais locaux</span>
+                                </div>
+                                <div class="recommended-product">
+                                    <i class="fas fa-seedling"></i>
+                                    <span>Super-aliments</span>
+                                </div>
+                                <div class="recommended-product">
+                                    <i class="fas fa-wheat-alt"></i>
+                                    <span>Céréales anciennes</span>
+                                </div>
+                            </div>
+                            <a href="#nouveautes" class="btn btn-recommendation">
+                                <i class="fas fa-shopping-basket"></i>
+                                Voir nos nouveautés
+                            </a>
+                        </div>
+                    `;
+                    productsTitle = 'Produits pour Maintenir Votre Santé';
+
+                } else {
+                    message = customMessage || `⚠️ ${prediction}`;
+                    resultClass = 'prediction-error';
+                    recommendations = `
+                        <div class="recommendations-section">
+                            <h5><i class="fas fa-info-circle"></i> Conseil Général</h5>
+                            <p>En attendant de pouvoir analyser vos résultats, découvrez nos produits bio pour une alimentation saine.</p>
+                        </div>
+                        <a href="#categories" class="btn btn-recommendation">
+                            <i class="fas fa-store"></i>
+                            Explorer nos catégories
+                        </a>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="prediction-alert ${resultClass}">
+                        <div class="prediction-content">
+                            <h4><i class="fas fa-stethoscope"></i> Résultat de l'analyse</h4>
+                            <p class="prediction-message">${message}</p>
+                            
+                            ${recommendations}
+                            
+                            <p class="prediction-note">
+                                <small>
+                                    <i class="fas fa-info-circle"></i>
+                                    Ce résultat est indicatif et ne remplace pas une consultation médicale.
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                // Scroll vers le résultat
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Mettre à jour le titre des produits recommandés si nécessaire
+                if (productsTitle) {
+                    const productsTitleElement = document.querySelector('#recommandes .section-title');
+                    if (productsTitleElement) {
+                        const originalTitle = productsTitleElement.getAttribute('data-original-title') || 'Produits Recommandés';
+                        productsTitleElement.setAttribute('data-original-title', originalTitle);
+                        productsTitleElement.textContent = productsTitle;
+                    }
+                }
+            }
+        });
+    </script>
+
+    <style>
+        /* Styles pour l'affichage des résultats */
+        .prediction-result {
+            margin-top: 2rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .prediction-alert {
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            margin-bottom: 2rem;
+        }
+
+        .prediction-diabetes {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border-left-color: #c44569;
+        }
+
+        .prediction-no-diabetes {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: white;
+            border-left-color: #2f9e44;
+        }
+
+        .prediction-error {
+            background: linear-gradient(135deg, #ffd43b, #fcc419);
+            color: #333;
+            border-left-color: #e67700;
+        }
+
+        .prediction-content h4 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .prediction-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Styles pour les recommandations */
+        .recommendations-section {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .recommendations-section h5 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations-section ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+
+        .recommendations-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .products-recommendations {
+            background: rgba(255,255,255,0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .products-recommendations h5 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommended-products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .recommended-product {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .recommended-product:hover {
+            transform: translateY(-2px);
+        }
+
+        .recommended-product i {
+            font-size: 1.5rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .btn-recommendation {
+            background: rgba(255,255,255,0.9);
+            color: #2e7d32;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-recommendation:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: #2e7d32;
+        }
+
+        .prediction-note {
+            opacity: 0.9;
+            margin-bottom: 0;
+            margin-top: 1.5rem;
+            font-style: italic;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Style pour le bouton désactivé */
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .recommended-products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .prediction-alert {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
+    <style>
+        .product-image { width:100%; height:200px; overflow:hidden; border-radius:10px; margin-bottom:1rem; }
+        .product-card-img { width:100%; height:100%; display:block; object-fit:cover; object-position:center; }
+    </style>
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="container">
@@ -21,59 +414,74 @@
     </section>
 
     <!-- Categories Section -->
-<section id="categories" class="categories-section">
-    <div class="container">
-        <h2 class="section-title">Nos Catégories</h2>
-        <div class="row g-4">
-            <div class="col-md-3 col-6">
-                <a href="{{ path('app_category', {id: 1}) }}" class="category-card">
-                    <div class="category-image" style="background-image: url('{{ asset('images/legumes.jpg') }}');"></div>
-                    <div class="category-name">Légumes Bio</div>
-                </a>
-            </div>
-            <div class="col-md-3 col-6">
-                <a href="{{ path('app_category', {id: 2}) }}" class="category-card">
-                    <div class="category-image" style="background-image: url('{{ asset('images/fruits.jpg') }}');"></div>
-                    <div class="category-name">Fruits Bio</div>
-                </a>
-            </div>
-            <div class="col-md-3 col-6">
-                <a href="{{ path('app_category', {id: 3}) }}" class="category-card">
-                    <div class="category-image" style="background-image: url('{{ asset('images/laitiers.jpg') }}');"></div>
-                    <div class="category-name">Produits Laitiers</div>
-                </a>
-            </div>
-            <div class="col-md-3 col-6">
-                <a href="{{ path('app_category', {id: 4}) }}" class="category-card">
-                    <div class="category-image" style="background-image: url('{{ asset('images/grains.jpg') }}');"></div>
-                    <div class="category-name">Grains & Céréales</div>
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
+    <section id="categories" class="categories-section">
+        <div class="container">
+            <h2 class="section-title">Nos Catégories</h2>
+            <p class="section-subtitle">Explorez notre sélection de produits bio par catégorie</p>
 
+            {% set cats = get_categories()|default([]) %}
+            
+            <!-- Layout Grille Moderne -->
+            <div class="categories-grid">
+                {% for cat in cats %}
+                    <div class="category-item">
+                        <a href="{{ path('app_category', {id: cat.id}) }}" class="category-card-modern">
+                            <div class="category-image-wrapper">
+                                <div class="category-image" style="background-image: url('{{ asset('images/' ~ (cat.image ?: 'category-default.jpg')) }}');"></div>
+                                <div class="category-overlay"></div>
+                                <div class="category-icon">
+                                    <i class="fas fa-leaf"></i>
+                                </div>
+                            </div>
+                            <div class="category-content">
+                                <h3 class="category-name">{{ cat.name }}</h3>
+                                <span class="category-link">Découvrir <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Aucune catégorie disponible pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Alternative: Layout avec cartes horizontales pour mobile -->
+            <div class="categories-horizontal-scroll d-lg-none">
+                <div class="horizontal-scroll-container">
+                    {% for cat in cats %}
+                        <a href="{{ path('app_category', {id: cat.id}) }}" class="category-card-horizontal">
+                            <div class="category-horizontal-image" style="background-image: url('{{ asset('images/' ~ (cat.image ?: 'category-default.jpg')) }}');"></div>
+                            <span class="category-horizontal-name">{{ cat.name }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </section>
 
     <!-- Produits Recommandés Section -->
     <section id="recommandes" class="products-section">
         <div class="container">
-            <h2 class="section-title">Produits Recommandés</h2>
+            <h2 class="section-title" data-original-title="Produits Recommandés">Produits Recommandés</h2>
             <p class="section-subtitle">Découvrez nos meilleurs produits tunisiens sélectionnés pour vous</p>
             
             <div class="row g-4">
                 {% for product in recommendedProducts %}
                 <div class="col-md-4">
                     <div class="product-card">
-                        <div class="product-image" style="background-image: url('{{ asset('images/' ~ product.image) }}');"></div>
+                        <div class="product-image">
+                            <img src="{{ asset('images/' ~ product.image) }}" alt="{{ product.name }}" class="product-card-img">
+                        </div>
                         <h3 class="product-name">{{ product.name }}</h3>
                         <div class="product-meta">
                             <span class="product-origin">{{ product.origin ?? 'Local' }}</span>
-                            <span class="stock-badge">{{ product.stock > 0 ? 'En stock' : 'Rupture' }}</span>
+                                    <span class="stock-badge">{{ (product.stock|default(0)) > 0 ? 'En stock' : 'Rupture' }}</span>
                         </div>
                         <p class="product-description">{{ product.description }}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="product-price">{{ product.price }} TND</span>
-                            <span class="text-muted">/{{ product.unit }}</span>
                         </div>
                         <div class="mt-3">
                             <a href="{{ path('app_product', {id: product.id}) }}" class="btn btn-add-cart me-2">
@@ -103,16 +511,17 @@
                 <div class="col-md-4">
                     <div class="product-card">
                         <div class="product-badge">Nouveau</div>
-                        <div class="product-image" style="background-image: url('{{ asset('images/' ~ product.image) }}');"></div>
+                        <div class="product-image">
+                            <img src="{{ asset('images/' ~ product.image) }}" alt="{{ product.name }}" class="product-card-img">
+                        </div>
                         <h3 class="product-name">{{ product.name }}</h3>
                         <div class="product-meta">
                             <span class="product-origin">{{ product.origin ?? 'Local' }}</span>
-                            <span class="stock-badge">{{ product.stock > 0 ? 'En stock' : 'Rupture' }}</span>
+                            <span class="stock-badge">{{ (product.stock|default(0)) > 0 ? 'En stock' : 'Rupture' }}</span>
                         </div>
                         <p class="product-description">{{ product.description }}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="product-price">{{ product.price }} TND</span>
-                            <span class="text-muted">/{{ product.unit }}</span>
                         </div>
                         <div class="mt-3">
                             <a href="{{ path('app_product', {id: product.id}) }}" class="btn btn-add-cart me-2">
@@ -127,6 +536,98 @@
                     <p class="text-center text-muted">Aucun nouveau produit disponible pour le moment.</p>
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Conseils Section avec Formulaire -->
+    <section id="conseils" class="conseils-section">
+        <div class="container">
+            <h2 class="section-title">Conseils Nutritionnels</h2>
+            <p class="section-subtitle">Analysez votre santé avec notre outil de prédiction du diabète</p>
+            
+            <div class="conseils-container">
+                <div class="conseils-info">
+                    <h3>Votre Santé Nous Importe</h3>
+                    <p>Remplissez ce formulaire avec les données de votre dernier bilan de santé pour obtenir une évaluation préliminaire de votre risque de diabète.</p>
+                    
+                    <div class="health-tips">
+                        <div class="tip-card">
+                            <i class="fas fa-heartbeat"></i>
+                            <h4>Important</h4>
+                            <p>Ces résultats sont indicatifs et ne remplacent pas une consultation médicale professionnelle.</p>
+                        </div>
+                        <div class="tip-card">
+                            <i class="fas fa-notes-medical"></i>
+                            <h4>Précision</h4>
+                            <p>Utilisez les données exactes de vos dernières analyses médicales pour des résultats plus fiables.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="conseils-form-container">
+                    <form id="diabetes-form" class="diabetes-form">
+                        <div class="form-header">
+                            <i class="fas fa-stethoscope"></i>
+                            <h3>Évaluation Diabète</h3>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="pregnancies">Grossesses</label>
+                                <input type="number" id="pregnancies" name="pregnancies" min="0" max="20" required>
+                                <small>Nombre de grossesses (0 si homme)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="glucose">Glucose</label>
+                                <input type="number" id="glucose" name="glucose" min="0" max="200" required>
+                                <small>Concentration en glucose (mg/dL)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="blood_pressure">Pression Artérielle</label>
+                                <input type="number" id="blood_pressure" name="blood_pressure" min="0" max="122" required>
+                                <small>Pression artérielle (mm Hg)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="skin_thickness">Épaisseur Peau</label>
+                                <input type="number" id="skin_thickness" name="skin_thickness" min="0" max="99" required>
+                                <small>Épaisseur du pli cutané (mm)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="insulin">Insuline</label>
+                                <input type="number" id="insulin" name="insulin" min="0" max="846" required>
+                                <small>Insuline (mu U/ml)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="bmi">IMC</label>
+                                <input type="number" step="0.1" id="bmi" name="bmi" min="0" max="67.1" required>
+                                <small>Indice de Masse Corporelle</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="diabetes_pedigree">Antécédents Familiaux</label>
+                                <input type="number" step="0.001" id="diabetes_pedigree" name="diabetes_pedigree" min="0" max="2.42" required>
+                                <small>Fonction de pedigree diabète</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="age">Âge</label>
+                                <input type="number" id="age" name="age" min="1" max="120" required>
+                                <small>Âge en années</small>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-analyze">
+                            <i class="fas fa-chart-line"></i>
+                            Analyser les Résultats
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </section>
