@@ -141,6 +141,23 @@
             background: var(--text-light);
             cursor: not-allowed;
         }
+
+        .btn-view-product {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-view-product:hover {
+            background: var(--primary-color);
+            color: white;
+        }
         
         .filters-sidebar {
             background: white;
@@ -167,8 +184,53 @@
             color: var(--primary-color);
             text-decoration: none;
         }
+
+        /* Category Hero with Photo */
+.category-hero {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.category-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.category-hero-title {
+    color: white;
+    font-size: 3.5rem;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1rem;
+}
+
+.category-hero-description {
+    color: white;
+    font-size: 1.3rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+}
     </style>
 </head>
+
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
@@ -194,10 +256,10 @@
                             Produits
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ path('app_category', {slug: 'legumes'}) }}">Légumes Bio</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {slug: 'fruits'}) }}">Fruits Bio</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {slug: 'laitiers'}) }}">Produits Laitiers</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_category', {slug: 'grains'}) }}">Grains & Céréales</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 1}) }}">Légumes Bio</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 2}) }}">Fruits Bio</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 3}) }}">Produits Laitiers</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 4}) }}">Grains & Céréales</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -229,7 +291,7 @@
                         </a>
                     {% endif %}
                     <!-- Icône Panier -->
-                    <a class="nav-link" href="#" title="Panier">
+                    <a class="nav-link" href="{{ path('app_cart_index') }}" title="Panier">
                         <span class="d-none d-sm-inline">Panier</span>
                         <i class="fas fa-shopping-cart ms-1"></i>
                         <span class="badge bg-success">0</span>
@@ -240,18 +302,12 @@
     </nav>
 
     <!-- Category Header -->
-    <section class="category-header">
-        <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
-                    <li class="breadcrumb-item active">{{ category.name }}</li>
-                </ol>
-            </nav>
-            <h1 class="category-title">{{ category.name }}</h1>
-            <p class="category-description">{{ category.description }}</p>
-        </div>
-    </section>
+    <section class="category-hero" style="background-image: url('{{ asset('images/category-banner.jpg') }}');">
+    <div class="container">
+        <h1 class="category-hero-title">{{ category.name }}</h1>
+        <p class="category-hero-description">{{ category.description }}</p>
+    </div>
+</section>
 
     <!-- Products Section -->
     <section class="products-section">
@@ -262,53 +318,101 @@
                     <div class="filters-sidebar">
                         <h5 class="filter-title">Filtrer par</h5>
                         
-                        <!-- Prix -->
-                        <div class="mb-4">
-                            <h6>Prix</h6>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="price1">
-                                <label class="form-check-label" for="price1">Moins de 5€</label>
+                        <form id="filterForm" method="GET">
+                            <!-- Prix -->
+                            <div class="mb-4">
+                                <h6>Prix</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input price-filter" type="radio" name="priceRange" value="0-5" id="price1">
+                                    <label class="form-check-label" for="price1">Moins de 5 TND</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input price-filter" type="radio" name="priceRange" value="5-10" id="price2">
+                                    <label class="form-check-label" for="price2">5 TND - 10 TND</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input price-filter" type="radio" name="priceRange" value="10-100" id="price3">
+                                    <label class="form-check-label" for="price3">Plus de 10 TND</label>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="price2">
-                                <label class="form-check-label" for="price2">5€ - 10€</label>
+                            
+                            <!-- Origine -->
+                            <div class="mb-4">
+                                <h6>Origine</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="Local" id="local">
+                                    <label class="form-check-label" for="local">Local</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="France" id="france">
+                                    <label class="form-check-label" for="france">France</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="Tunisie" id="tunisie">
+                                    <label class="form-check-label" for="tunisie">Tunisie</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input origin-filter" type="radio" name="origin" value="Italie" id="italie">
+                                    <label class="form-check-label" for="italie">Italie</label>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="price3">
-                                <label class="form-check-label" for="price3">Plus de 10€</label>
+                            
+                            <!-- Disponibilité -->
+                            <div class="mb-4">
+                                <h6>Disponibilité</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input stock-filter" type="checkbox" name="inStock" value="true" id="inStock">
+                                    <label class="form-check-label" for="inStock">En stock seulement</label>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Origine -->
-                        <div class="mb-4">
-                            <h6>Origine</h6>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="local">
-                                <label class="form-check-label" for="local">Local</label>
+
+                            <!-- Tri -->
+                            <div class="mb-4">
+                                <h6>Trier par</h6>
+                                <select class="form-select sort-select" name="sort">
+                                    <option value="newest">Nouveautés</option>
+                                    <option value="price_asc">Prix croissant</option>
+                                    <option value="price_desc">Prix décroissant</option>
+                                    <option value="name">Nom A-Z</option>
+                                    <option value="stock">Stock</option>
+                                </select>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="france">
-                                <label class="form-check-label" for="france">France</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="europe">
-                                <label class="form-check-label" for="europe">Europe</label>
-                            </div>
-                        </div>
-                        
-                        <!-- Disponibilité -->
-                        <div class="mb-4">
-                            <h6>Disponibilité</h6>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="inStock">
-                                <label class="form-check-label" for="inStock">En stock</label>
-                            </div>
-                        </div>
+
+                            <button type="button" id="resetFilters" class="btn btn-outline-secondary w-100">Réinitialiser</button>
+                        </form>
                     </div>
                 </div>
                 
                 <!-- Products Grid -->
                 <div class="col-lg-9">
+                    <!-- Active Filters Display -->
+                    {% set hasActiveFilters = app.request.query.all()|filter((v, k) => k != 'sort' and v != '') is not empty %}
+                    {% if hasActiveFilters %}
+                    <div class="active-filters mb-4">
+                        <h6>Filtres actifs:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% if app.request.query.get('priceRange') %}
+                                {% set priceRange = app.request.query.get('priceRange') %}
+                                {% if priceRange == '0-5' %}
+                                    <span class="badge bg-primary">Prix: < 5 TND</span>
+                                {% elseif priceRange == '5-10' %}
+                                    <span class="badge bg-primary">Prix: 5-10 TND</span>
+                                {% elseif priceRange == '10-100' %}
+                                    <span class="badge bg-primary">Prix: > 10 TND</span>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if app.request.query.get('origin') %}
+                                <span class="badge bg-primary">Origine: {{ app.request.query.get('origin') }}</span>
+                            {% endif %}
+                            
+                            {% if app.request.query.get('inStock') %}
+                                <span class="badge bg-primary">En stock seulement</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="row">
                         {% for product in products %}
                         <div class="col-md-6 col-lg-4">
@@ -329,20 +433,43 @@
                                 </div>
                                 <p class="product-description">{{ product.description }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="product-price">{{ product.price }}€</span>
+                                    <span class="product-price">{{ product.price }} TND</span>
                                     <span class="text-muted">/{{ product.unit }}</span>
                                 </div>
-                                <a href="{{ path('app_product', {slug: product.slug}) }}" class="btn btn-add-cart mt-3">
+                                
+                                <a href="{{ path('app_product', {id: product.id}) }}" class="btn btn-view-product">
                                     <i class="fas fa-eye me-2"></i>Voir le produit
                                 </a>
+                                
+                                {% if product.stock > 0 %}
+                                    <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="d-inline w-100">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart_' ~ product.id) }}">
+                                        <button type="submit" class="btn btn-add-cart">
+                                            <i class="fas fa-shopping-cart me-2"></i>Ajouter au panier
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-add-cart disabled" disabled>
+                                        <i class="fas fa-shopping-cart me-2"></i>Rupture de stock
+                                    </button>
+                                {% endif %}
                             </div>
                         </div>
                         {% else %}
                         <div class="col-12">
                             <div class="text-center py-5">
                                 <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
-                                <h4 class="text-muted">Aucun produit trouvé dans cette catégorie</h4>
-                                <p class="text-muted">Revenez bientôt pour découvrir nos nouveaux produits !</p>
+                                <h4 class="text-muted">Aucun produit trouvé</h4>
+                                <p class="text-muted">
+                                    {% if hasActiveFilters %}
+                                        Aucun produit ne correspond à vos critères de filtrage.
+                                    {% else %}
+                                        Aucun produit trouvé dans cette catégorie.
+                                    {% endif %}
+                                </p>
+                                {% if hasActiveFilters %}
+                                    <a href="{{ path('app_category', {id: category.id}) }}" class="btn btn-primary">Voir tous les produits</a>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
@@ -366,5 +493,64 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Filter JavaScript -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+        const resetButton = document.getElementById('resetFilters');
+        
+        // Auto-submit form when filters change
+        const filterInputs = document.querySelectorAll('.price-filter, .origin-filter, .stock-filter, .sort-select');
+        filterInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+        
+        // Reset filters
+        resetButton.addEventListener('click', function() {
+            window.location.href = window.location.pathname;
+        });
+        
+        // Set current filter values from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Set price range
+        const priceRange = urlParams.get('priceRange');
+        if (priceRange) {
+            const priceRadio = document.querySelector(`input[name="priceRange"][value="${priceRange}"]`);
+            if (priceRadio) {
+                priceRadio.checked = true;
+            }
+        }
+        
+        // Set origin
+        const origin = urlParams.get('origin');
+        if (origin) {
+            const originRadio = document.querySelector(`input[name="origin"][value="${origin}"]`);
+            if (originRadio) {
+                originRadio.checked = true;
+            }
+        }
+        
+        // Set stock
+        const inStock = urlParams.get('inStock');
+        if (inStock) {
+            document.querySelector('input[name="inStock"]').checked = true;
+        }
+        
+        // Set sort
+        const sort = urlParams.get('sort');
+        if (sort) {
+            const sortSelect = document.querySelector('select[name="sort"]');
+            if (sortSelect) {
+                sortSelect.value = sort;
+            }
+        }
+    });
+    </script>
 </body>
+
+
 </html>

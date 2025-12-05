@@ -165,8 +165,253 @@
             color: var(--primary-color) !important;
             font-weight: 600;
         }
+     
+
+
+        /* Modern Orders Section */
+.orders-section {
+    margin-top: 2rem;
+}
+
+.order-card-modern {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.order-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+}
+
+.order-card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+
+.order-header {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.order-info {
+    flex: 1;
+}
+
+.order-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.order-date {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.order-status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.status-pending {
+    background: linear-gradient(135deg, #fff3cd, #ffc107);
+    color: #856404;
+}
+
+.status-confirmed {
+    background: linear-gradient(135deg, #cce7ff, #17a2b8);
+    color: #004085;
+}
+
+.status-delivered {
+    background: linear-gradient(135deg, #d4edda, #28a745);
+    color: #155724;
+}
+
+.status-cancelled {
+    background: linear-gradient(135deg, #f8d7da, #dc3545);
+    color: #721c24;
+}
+
+.order-details {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+}
+
+.order-total {
+    text-align: right;
+}
+
+.order-amount {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+.order-items {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.order-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f8f9fa;
+}
+
+.btn-order-details {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(107, 167, 92, 0.3);
+}
+
+.btn-order-details:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(107, 167, 92, 0.4);
+    color: white;
+}
+
+.btn-order-track {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-order-track:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Empty State Modern */
+.empty-state-modern {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-radius: 20px;
+    border: 2px dashed #dee2e6;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.empty-state-modern h4 {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-state-modern p {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Orders List Container */
+.orders-list-modern {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.orders-list-modern::-webkit-scrollbar {
+    width: 6px;
+}
+
+.orders-list-modern::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.orders-list-modern::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .order-details {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .order-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .order-status-badge {
+        align-self: flex-start;
+    }
+}
+
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
@@ -192,9 +437,10 @@
                             Produits
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Recommandés</a></li>
-                            <li><a class="dropdown-item" href="#">Nouveautés</a></li>
-                            <li><a class="dropdown-item" href="#">Panier</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 1}) }}">Légumes Bio</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 2}) }}">Fruits Bio</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 3}) }}">Produits Laitiers</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_category', {id: 4}) }}">Grains & Céréales</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -224,7 +470,7 @@
                         </a>
                     {% endif %}
                     <!-- Icône Panier -->
-                    <a class="nav-link" href="#" title="Panier">
+                    <a class="nav-link" href="{{ path('app_cart_index') }}" title="Panier">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge bg-success">0</span>
                     </a>
@@ -300,21 +546,70 @@
             </div>
 
             <!-- Historique des commandes -->
-            <div class="account-card">
-                <h3 class="section-title">
-                    <i class="fas fa-shopping-bag"></i>
-                    Mes Commandes
-                </h3>
-                <div class="empty-state">
-                    <i class="fas fa-box-open"></i>
-                    <h4>Aucune commande pour le moment</h4>
-                    <p class="text-muted">Votre historique de commandes apparaîtra ici après vos premiers achats.</p>
-                    <a href="{{ path('app_home') }}#categories" class="btn-home mt-3">
-                        <i class="fas fa-shopping-basket me-2"></i>
-                        Découvrir nos produits
+<div class="account-card">
+    <h3 class="section-title">
+        <i class="fas fa-shopping-bag"></i>
+        Mes Commandes
+    </h3>
+    
+    {% if orders is not empty %}
+        <div class="orders-list-modern">
+            {% for order in orders %}
+            <div class="order-card-modern">
+                <div class="order-header">
+                    <div class="order-info">
+                        <div class="order-number">Commande #{{ order.id }}</div>
+                        <div class="order-date">{{ order.createdAt|date('d/m/Y à H:i') }}</div>
+                    </div>
+                    <span class="order-status-badge 
+                        {% if order.status == 'pending' %}status-pending
+                        {% elseif order.status == 'confirmed' %}status-confirmed
+                        {% elseif order.status == 'delivered' %}status-delivered
+                        {% else %}status-cancelled{% endif %}">
+                        {{ order.status == 'pending' ? 'En attente' : 
+                           order.status == 'confirmed' ? 'Confirmée' : 
+                           order.status == 'delivered' ? 'Livrée' : 
+                           'Annulée' }}
+                    </span>
+                </div>
+                
+                <div class="order-details">
+                    <div class="order-items">
+                        {{ order.orderItems|length }} produit(s)
+                    </div>
+                    <div class="order-total">
+                        <div class="order-amount">{{ order.grandTotal }} TND</div>
+                        <div class="order-shipping">Livraison incluse</div>
+                    </div>
+                </div>
+                
+                <div class="order-actions">
+                    <a href="{{ path('app_order_details', {'id': order.id}) }}" class="btn-order-details">
+                        <i class="fas fa-eye me-1"></i>Détails
                     </a>
+                    {% if order.status == 'confirmed' or order.status == 'delivered' %}
+                    <a href="#" class="btn-order-track">
+                        <i class="fas fa-truck me-1"></i>Suivi
+                    </a>
+                    {% endif %}
                 </div>
             </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-modern">
+            <div class="empty-state-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h4>Aucune commande pour le moment</h4>
+            <p>Votre historique de commandes apparaîtra ici après vos premiers achats chez EcoNutri.</p>
+            <a href="{{ path('app_home') }}#categories" class="btn-home">
+                <i class="fas fa-shopping-basket me-2"></i>
+                Découvrir nos produits
+            </a>
+        </div>
+    {% endif %}
+</div>
         </div>
     </section>
 
@@ -333,4 +628,6 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
+
 </html>
