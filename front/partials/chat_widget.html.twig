@@ -1,0 +1,350 @@
+<div id="biohealth-chat-widget">
+    <!-- Toggle Button -->
+    <button onclick="toggleChat()" class="chat-toggle">
+        💬 Health Assistant
+    </button>
+    
+    <!-- Chat Window -->
+    <div id="chat-window" class="chat-window">
+        <div class="chat-header">
+            <h3>BioHealth Assistant</h3>
+            <button onclick="toggleChat()">×</button>
+        </div>
+        
+        <div id="chat-messages" class="chat-messages">
+            <div class="message bot">
+                Hello! I'm your diabetes & wellness assistant. How can I help you today?
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" id="user-input" 
+                   placeholder="Ask about products, diabetes, or our test..."
+                   onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+
+<style>
+#biohealth-chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+.chat-toggle {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s;
+}
+
+.chat-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.chat-window {
+    width: 380px;
+    height: 500px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.chat-header button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-header button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.message.user {
+    background: #4CAF50;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+.message.bot {
+    background: #f0f7f0;
+    color: #2E7D32;
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+    border: 1px solid #e0f2e0;
+}
+
+.message.typing {
+    background: #f0f7f0;
+    color: #666;
+    font-style: italic;
+}
+
+.chat-input {
+    padding: 15px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+    background: #f9f9f9;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.chat-input input:focus {
+    border-color: #4CAF50;
+}
+
+.chat-input button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.chat-input button:hover {
+    background: #3d8b40;
+}
+
+/* Typing animation */
+.typing-dots {
+    display: inline-block;
+}
+
+.typing-dots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #666;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+}
+</style>
+
+<script>
+// Configuration
+const N8N_WEBHOOK_URL = 'https://maryem1.app.n8n.cloud/webhook/econutri-chat'; // Replace with your n8n URL
+let currentSessionId = localStorage.getItem('chat_session_id') || 'guest-' + Date.now();
+let chatOpen = false;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Load chat history if exists
+    const savedHistory = localStorage.getItem('chat_history');
+    if (savedHistory) {
+        const history = JSON.parse(savedHistory);
+        history.slice(-5).forEach(msg => {
+            addMessage(msg.role === 'user' ? 'user' : 'bot', msg.message);
+        });
+    }
+    
+    // Save session ID
+    localStorage.setItem('chat_session_id', currentSessionId);
+});
+
+// Toggle chat window
+function toggleChat() {
+    const chatWindow = document.getElementById('chat-window');
+    chatOpen = !chatOpen;
+    chatWindow.style.display = chatOpen ? 'flex' : 'none';
+}
+
+// Send message
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Add user message to UI
+    addMessage('user', message);
+    input.value = '';
+    showTyping();
+
+    try {
+        const response = await fetch('/proxy/chat', {
+            method: 'POST',
+            mode: 'cors', // Explicitly request CORS mode
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                sessionId: currentSessionId, // Get from Symfony session or localStorage
+                pageUrl: window.location.pathname
+            })
+        });
+
+        const data = await response.json();
+        hideTyping();
+        addMessage('bot', data.reply); // Your workflow returns { "reply": "..." }
+
+    } catch (error) {
+        console.error('Chat error:', error);
+        hideTyping();
+        addMessage('bot', "I'm having trouble connecting. Please try again!");
+    }
+}
+
+// Add message to UI
+function addMessage(sender, text) {
+    const messagesDiv = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    
+    messageDiv.className = `message ${sender}`;
+    messageDiv.innerHTML = formatMessage(text);
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Format message with basic markdown
+function formatMessage(text) {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>')
+        .replace(/- (.*?)(?=\n|$)/g, '• $1<br>');
+}
+
+// Typing indicator
+function showTyping() {
+    const messagesDiv = document.getElementById('chat-messages');
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'message bot typing';
+    typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    messagesDiv.appendChild(typingDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function hideTyping() {
+    const typing = document.getElementById('typing-indicator');
+    if (typing) typing.remove();
+}
+
+// Handle Enter key
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+// Get user info if available (from Symfony session)
+function getUserInfo() {
+    // If you have user data in Symfony, pass it here
+    // Example: window.userData from Symfony template
+    if (window.userData) {
+        return {
+            name: window.userData.name,
+            email: window.userData.email,
+            isDiabetic: window.userData.hasDiabetesTest || false,
+            // Add other relevant data
+        };
+    }
+    return null;
+}
+
+// Save to localStorage
+function saveToHistory(role, message) {
+    const history = JSON.parse(localStorage.getItem('chat_history') || '[]');
+    history.push({
+        role: role,
+        message: message,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Keep only last 20 messages
+    if (history.length > 20) {
+        history.splice(0, history.length - 20);
+    }
+    
+    localStorage.setItem('chat_history', JSON.stringify(history));
+}
+
+// Auto-open on product pages
+if (window.location.pathname.includes('/product/') || 
+    window.location.pathname.includes('/diabetes-test')) {
+    setTimeout(() => {
+        if (!localStorage.getItem('chat_shown_today')) {
+            toggleChat();
+            localStorage.setItem('chat_shown_today', 'true');
+        }
+    }, 3000);
+}
+</script>
