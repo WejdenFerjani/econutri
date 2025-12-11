@@ -195,5 +195,21 @@
         
         {% block javascripts_end %}
         {% endblock %}
+
+        <script>
+// Pass user data to chatbot
+window.userData = {
+    {% if app.user %}
+    name: "{{ app.user.prenom }}",
+    email: "{{ app.user.email }}",
+    hasDiabetesTest: {{ app.user.hasDiabetesTest ? 'true' : 'false' }},
+    testResult: {{ app.user.testResult|json_encode|raw }},
+    lastOrderDate: "{{ app.user.lastOrderDate ? app.user.lastOrderDate|date('Y-m-d') : '' }}",
+    {% endif %}
+    pageType: "{{ app.request.attributes.get('_route') }}"
+};
+</script>
+
+{{ include('partials/chat_widget.html.twig') }}
     </body>
 </html>
