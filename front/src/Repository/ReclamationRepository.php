@@ -25,4 +25,13 @@ class ReclamationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    public function save(Reclamation $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
 }

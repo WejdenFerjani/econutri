@@ -259,6 +259,107 @@ function deleteProduct(productId, productName) {
 }
 </script>
 
+<!-- Modal pour ajouter un produit -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Ajouter un produit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="addProductImage" class="form-label">Image du produit</label>
+                        <input type="file" class="form-control" id="addProductImage" name="image" accept="image/*" required>
+                        <div class="form-text">Formats acceptés: JPG, PNG, WEBP</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addProductName" class="form-label">Nom *</label>
+                        <input type="text" class="form-control" id="addProductName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addProductDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="addProductDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addProductCategory" class="form-label">Catégorie *</label>
+                        <select class="form-select" id="addProductCategory" name="category_id" required>
+                            <option value="">Sélectionner une catégorie</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addProductStock" class="form-label">Stock *</label>
+                            <input type="number" class="form-control" id="addProductStock" name="stock" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addProductPrice" class="form-label">Prix (TND) *</label>
+                            <input type="number" class="form-control" id="addProductPrice" name="price" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="addProductOrigin" class="form-label">Origine</label>
+                            <input type="text" class="form-control" id="addProductOrigin" name="origin" value="Tunisie">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="addProductUnit" class="form-label">Unité</label>
+                            <select class="form-select" id="addProductUnit" name="unit">
+                                <option value="kg">kg</option>
+                                <option value="pièce">pièce</option>
+                                <option value="litre">litre</option>
+                                <option value="botte">botte</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="submitNewProduct()">Ajouter le produit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitNewProduct() {
+    const form = document.getElementById('addProductForm');
+    const formData = new FormData(form);
+    
+    // Validation
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    fetch('{{ path("admin_add_product") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Produit ajouté avec succès!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+            modal.hide();
+            form.reset();
+            location.reload();
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de l\'ajout du produit');
+    });
+}
+</script>
+
 <!-- Modal pour voir les détails -->
 <div class="modal fade" id="viewProductModal" tabindex="-1" aria-labelledby="viewProductModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

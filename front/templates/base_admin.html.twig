@@ -166,9 +166,9 @@
     
     .nav-link {
         color: rgba(255, 255, 255, 0.85) !important;
-        padding: 14px 18px !important;
+        padding: 16px 20px !important;
         border-radius: 10px;
-        font-size: 0.95rem;
+        font-size: 1rem;
         transition: all 0.3s;
         display: flex;
         align-items: center;
@@ -762,39 +762,26 @@
                         {% endif %}
                     </a>
                 </li>
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 15px;">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ path('admin_objectifs') }}">
                         <i class="nav-icon fas fa-bullseye"></i>
                         <span>Objectifs</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="nav-icon fas fa-star"></i>
-                        <span>Avis</span>
-                    </a>
-                </li>
-                <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 15px;">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('admin_profile') }}">
-                        <i class="nav-icon fas fa-user-circle"></i>
-                        <span>Profil</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="{{ path('app_home') }}">
-                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <i class="nav-icon fas fa-home"></i>
                         <span>Retour au site</span>
                     </a>
                 </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_logout') }}">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <span>Déconnexion</span>
+                        </a>
+                    </li>
             </ul>
-        </div>
-        
-        <div class="sidebar-footer">
-            <small>
-                © {{ "now"|date("Y") }} Econutri<br>
-                Version 2.1.0
-            </small>
         </div>
     </div>
     

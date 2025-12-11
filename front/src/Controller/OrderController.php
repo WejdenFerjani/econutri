@@ -11,6 +11,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
@@ -48,7 +51,8 @@ class OrderController extends AbstractController
     public function confirm(
         Request $request,
         CartItemRepository $cartItemRepository,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        MailerInterface $mailer
     ): Response {
         $user = $this->getUser();
         $cartItems = $cartItemRepository->findByUser($user);
@@ -99,7 +103,26 @@ class OrderController extends AbstractController
         $cartItemRepository->clearUserCart($user);
         $em->flush();
 
-        $this->addFlash('success', 'Commande créée avec succès');
+        // Envoyer email de confirmation de commande
+        try {
+            $userEmail = $user->getUserIdentifier();
+            $email = (new TemplatedEmail())
+                ->from(new Address('no-reply@econutri.tn', 'Econutri'))
+                ->to(new Address($userEmail))
+                ->subject('Confirmation de votre commande')
+                ->htmlTemplate('emails/order_confirmation.html.twig')
+                ->context([
+                    'order' => $order,
+                    'user' => $user,
+                ]);
+            $mailer->send($email);
+            $this->addFlash('success', 'Commande créée avec succès. Email de confirmation envoyé.');
+        } catch (\Throwable $e) {
+            // Ne pas bloquer l'utilisateur si l'email échoue
+            error_log('Erreur email: ' . $e->getMessage());
+            $this->addFlash('success', 'Commande créée avec succès. Email: ' . $e->getMessage());
+        }
+
         return $this->redirectToRoute('app_order_confirmation', ['id' => $order->getId()]);
     }
 

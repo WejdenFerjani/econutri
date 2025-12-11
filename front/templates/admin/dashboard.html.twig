@@ -65,7 +65,9 @@
             <div class="chart-title">
                 <i class="fas fa-chart-bar"></i> Quantités en stock par produit
             </div>
-            <canvas id="quantitiesChart" height="300"></canvas>
+            <div class="chart-wrapper" style="position: relative; height: 350px; width: 100%;">
+                <canvas id="quantitiesChart"></canvas>
+            </div>
         </div>
     </div>
     <div class="col-lg-6 mb-4">
@@ -73,7 +75,23 @@
             <div class="chart-title">
                 <i class="fas fa-chart-line"></i> Ventes des 7 derniers jours
             </div>
-            <canvas id="salesChart" height="300"></canvas>
+            <div class="chart-wrapper" style="position: relative; height: 350px; width: 100%;">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PRODUCT SALES CHART -->
+<div class="row mb-4">
+    <div class="col-lg-12 mb-4">
+        <div class="chart-container">
+            <div class="chart-title">
+                <i class="fas fa-chart-pie"></i> Nombre de produits vendus par produit
+            </div>
+            <div class="chart-wrapper" style="position: relative; height: 400px; width: 100%;">
+                <canvas id="productSalesChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -163,7 +181,7 @@
                                 <td>
                                     {% if order.status == 'pending' %}
                                         <span class="badge badge-custom" style="background: linear-gradient(135deg, var(--lime-400), var(--lime-600)); color: var(--lime-900);">
-                                            En attente
+                                            Confirmé
                                         </span>
                                     {% elseif order.status == 'confirmed' %}
                                         <span class="badge badge-custom" style="background: linear-gradient(135deg, var(--green-400), var(--green-600)); color: white;">
@@ -268,6 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(quantitiesCtx, {
             type: 'bar',
             data: {
+                
                 labels: productNames,
                 datasets: [{
                     label: 'Stock disponible',
@@ -318,9 +337,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Graphique des ventes (données simulées pour l'instant)
+    // Graphique des ventes (données dynamiques de la base de données)
     const salesCtx = document.getElementById('salesChart')?.getContext('2d');
     if (salesCtx) {
+        const salesLabels = {{ salesLabels|json_encode|raw }};
+        const salesDataValues = {{ salesData|json_encode|raw }};
+        
         const gradientLine = salesCtx.createLinearGradient(0, 0, 0, 400);
         gradientLine.addColorStop(0, 'rgba(34, 197, 94, 0.8)');
         gradientLine.addColorStop(1, 'rgba(34, 197, 94, 0.1)');
@@ -328,10 +350,10 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(salesCtx, {
             type: 'line',
             data: {
-                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                labels: salesLabels,
                 datasets: [{
                     label: 'Ventes (TND)',
-                    data: [120, 190, 300, 500, 200, 300, 450],
+                    data: salesDataValues,
                     backgroundColor: gradientLine,
                     borderColor: '#16a34a',
                     borderWidth: 4,
@@ -384,6 +406,117 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Graphique des ventes par produit
+    const productSalesCtx = document.getElementById('productSalesChart')?.getContext('2d');
+    if (productSalesCtx) {
+        const productNamesForSales = {{ productNames|json_encode|raw }};
+        const productSalesData = {{ productSales|json_encode|raw }};
+        
+        // Générer des couleurs pour chaque produit
+        const colors = [
+            '#22c55e', '#16a34a', '#84cc16', '#65a30d', '#10b981',
+            '#059669', '#14b8a6', '#0d9488', '#06b6d4', '#0284c7',
+            '#3b82f6', '#2563eb', '#6366f1', '#4f46e5', '#8b5cf6'
+        ];
+        
+        new Chart(productSalesCtx, {
+            type: 'bar',
+            data: {
+                labels: productNamesForSales,
+                datasets: [{
+                    label: 'Quantité vendue',
+                    data: productSalesData,
+                    backgroundColor: colors.slice(0, productNamesForSales.length),
+                    borderColor: colors.slice(0, productNamesForSales.length).map(c => c),
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(34, 197, 94, 0.1)'
+                        },
+                        ticks: {
+                            color: '#166534',
+                            font: {
+                                weight: '600'
+                            },
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#166534',
+                            font: {
+                                weight: '600'
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
+
+<style>
+    /* Conteneurs de graphiques avec dimensions fixes */
+    .chart-wrapper {
+        position: relative;
+        width: 100%;
+        height: 350px;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+    }
+
+    .chart-wrapper canvas {
+        max-height: 350px !important;
+        max-width: 100% !important;
+    }
+
+    /* Empêcher la croissance excessive des graphiques */
+    #quantitiesChart,
+    #salesChart {
+        max-height: 350px !important;
+    }
+
+    /* Media queries pour responsive */
+    @media (max-width: 992px) {
+        .chart-wrapper {
+            height: 300px;
+        }
+        
+        .chart-wrapper canvas {
+            max-height: 300px !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .chart-wrapper {
+            height: 250px;
+        }
+        
+        .chart-wrapper canvas {
+            max-height: 250px !important;
+        }
+    }
+</style>
 {% endblock %}

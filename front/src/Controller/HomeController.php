@@ -16,11 +16,6 @@ class HomeController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Rediriger les admins vers le dashboard
-        if ($this->isGranted('ROLE_ADMIN')) {
-            return $this->redirectToRoute('admin_dashboard');
-        }
-
         // Récupérer les produits recommandés (6 mieux stockés) et nouveaux (3 plus récents)
         $recommendedEntities = $productRepository->findRecommendedProducts(6);
         $newEntities = $productRepository->findNewProducts(3);
