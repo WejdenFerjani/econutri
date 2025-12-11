@@ -1,0 +1,95 @@
+{
+  "name": "Econutri Chatbot Workflow",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "parameters": {
+        "path": "econutri-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "econutri-webhook"
+    },
+    {
+      "name": "Get User Context",
+      "type": "n8n-nodes-base.code",
+      "position": [450, 300],
+      "parameters": {
+        "jsCode": "// Get or create session\nconst sessionId = $json.sessionId || 'guest-' + Date.now();\n\n// Get conversation history\nconst history = $getWorkflowStaticData('user').get(sessionId) || [];\n\n// Add current message\nhistory.push({\n  role: 'user',\n  message: $json.message,\n  timestamp: new Date().toISOString()\n});\n\n// Keep last 6 messages\nif (history.length > 6) {\n  history.splice(0, history.length - 6);\n}\n\n// Save history\n$getWorkflowStaticData('user').set(sessionId, history);\n\n// Prepare context\nconst recentConversation = history\n  .slice(-3)\n  .map(msg => `${msg.role}: ${msg.message}`)\n  .join('\n');\n\n// Get user info if available\nconst userInfo = $json.userInfo || {};\n\nreturn {\n  sessionId,\n  message: $json.message,\n  history: recentConversation,\n  userInfo,\n  pageUrl: $json.pageUrl || 'unknown',\n  timestamp: new Date().toISOString()\n};"
+      }
+    },
+    {
+      "name": "Prepare Gemini Prompt",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300],
+      "parameters": {
+        "jsCode": "// System prompt for Econutri chatbot\nconst systemPrompt = `You are \"Econutri AI Assistant\", an expert in nutrition and organic health products.\n\nSTORE INFORMATION:\n- Name: Econutri Organic Store\n- Products: Organic foods, supplements, health kits\n- Services: Free health consultations, personalized nutrition plans\n- Key Products: Organic honey, Herbal teas, Multivitamins, Fitness trackers\n\nINSTRUCTIONS:\n1. NATURAL CONVERSATION: Be friendly, empathetic, conversational\n2. PRODUCT RECOMMENDATIONS: Suggest specific products with benefits\n3. HEALTH ADVICE: Provide practical, evidence-based tips\n4. COMPARISONS: Compare products objectively\n5. PERSONALIZATION: Use available user context\n6. SAFETY: Always recommend consulting doctors for medical advice\n\nCONTEXT:\nPrevious conversation:\n${$json.history}\n\nUser information: ${JSON.stringify($json.userInfo)}\nCurrent page: ${$json.pageUrl}\n\nRESPONSE FORMAT:\n- Keep responses concise (2-4 sentences)\n- Use bullet points when listing products\n- Include product names and key benefits\n- Ask follow-up questions to understand needs better\n- End with a helpful question or suggestion\n\nNow respond to this message:`;\n\n// Combine with user message\nconst fullPrompt = `${systemPrompt}\n\nUser: ${$json.message}\n\nAssistant:`;\n\nreturn {\n  prompt: fullPrompt,\n  sessionId: $json.sessionId,\n  originalMessage: $json.message\n};"
+      }
+    },
+    {
+      "name": "Call Gemini API",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 300],
+      "parameters": {
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "=AIzaSyDh3Olx5s38YqmJ1Ma3RwMXn-fmalpTHGs"
+            }
+          ]
+        },
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"{{$json.prompt}}\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topP\": 0.8,\n    \"topK\": 40,\n    \"maxOutputTokens\": 500\n  },\n  \"safetySettings\": [\n    {\n      \"category\": \"HARM_CATEGORY_HARASSMENT\",\n      \"threshold\": \"BLOCK_MEDIUM_AND_ABOVE\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "name": "Process Gemini Response",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 300],
+      "parameters": {
+        "jsCode": "// Extract response from Gemini\nconst geminiResponse = $json.candidates[0].content.parts[0].text;\n\n// Add to conversation history\nconst sessionId = $input.first().json.sessionId;\nconst history = $getWorkflowStaticData('user').get(sessionId) || [];\n\nhistory.push({\n  role: 'assistant',\n  message: geminiResponse,\n  timestamp: new Date().toISOString()\n});\n\n// Save updated history\n$getWorkflowStaticData('user').set(sessionId, history);\n\n// Prepare final response\nreturn {\n  reply: geminiResponse,\n  sessionId: sessionId,\n  timestamp: new Date().toLocaleTimeString(),\n  features: {\n    natural_conversation: true,\n    personalized: $input.first().json.userInfo ? true : false,\n    contains_recommendations: geminiResponse.toLowerCase().includes('product') || geminiResponse.toLowerCase().includes('recommend'),\n    contains_advice: geminiResponse.toLowerCase().includes('advice') || geminiResponse.toLowerCase().includes('tip')\n  }\n};"
+      }
+    },
+    {
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1250, 300],
+      "parameters": {}
+    },
+    {
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 500],
+      "parameters": {
+        "jsCode": "// Fallback response if Gemini fails\nreturn {\n  reply: \"I'm having trouble connecting right now. I can help you with:\\n• Product recommendations\\n• Health management tips\\n• Form question explanations\\n\\nWhat would you like to know about?\",\n  sessionId: $input.first().json.sessionId,\n  fallback: true\n};"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[["Get User Context"]]]
+    },
+    "Get User Context": {
+      "main": [[["Prepare Gemini Prompt"]]]
+    },
+    "Prepare Gemini Prompt": {
+      "main": [[["Call Gemini API"]]]
+    },
+    "Call Gemini API": {
+      "main": [[["Process Gemini Response"]]],
+      "catch": [[["Error Handler"]]]
+    },
+    "Process Gemini Response": {
+      "main": [[["Webhook Response"]]]
+    },
+    "Error Handler": {
+      "main": [[["Webhook Response"]]]
+    }
+  }
+}
