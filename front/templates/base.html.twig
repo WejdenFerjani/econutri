@@ -183,6 +183,17 @@
             {% block body %}{% endblock %}
         </main>
 
+        {# Chatbot widget #}
+        <div id="chatbot-toggle" style="position: fixed; right: 20px; bottom: 20px; background: #4CAF50; color: white; border-radius: 50%; width: 56px; height: 56px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">💬</div>
+        <div id="chatbot-panel" style="position: fixed; right: 20px; bottom: 90px; width: 320px; max-height: 60vh; background: white; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display:none; overflow:hidden;">
+            <div style="background: linear-gradient(135deg, #4CAF50, #45a049); color:white; padding:10px 14px; font-weight:600;">Recettes Healthy</div>
+            <div id="chatbot-messages" style="padding: 10px; overflow-y: auto; max-height: 40vh; font-size: 14px;"></div>
+            <div style="display:flex; gap:8px; padding:10px; border-top:1px solid #eee;">
+                <input id="chatbot-input" type="text" placeholder="Ex: dîner <500 kcal" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px;">
+                <button id="chatbot-send" class="btn btn-success" style="padding:8px 12px;">Envoyer</button>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="bg-dark text-light text-center py-3 mt-5">
             <div class="container">
@@ -192,6 +203,66 @@
 
         <!-- Scripts Bootstrap -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+        (function(){
+            const toggle = document.getElementById('chatbot-toggle');
+            const panel = document.getElementById('chatbot-panel');
+            const input = document.getElementById('chatbot-input');
+            const send = document.getElementById('chatbot-send');
+            const messages = document.getElementById('chatbot-messages');
+
+            function addMessage(html){
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            if(toggle){
+                toggle.addEventListener('click', () => {
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+
+            if(send){
+                send.addEventListener('click', async () => {
+                    const q = input.value.trim();
+                    if(!q) return;
+                    addMessage(`<div style=\"margin-bottom:8px; color:#555;\"><strong>Vous:</strong> ${q}</div>`);
+                    input.value = '';
+                    try{
+                        const res = await fetch('{{ path('api_chat_recipes') }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: q, maxReadyTime: 30, number: 5 })
+                        });
+                        const data = await res.json();
+                        if(data.success){
+                            if(data.recipes.length === 0){
+                                addMessage(`<div style=\"margin-bottom:8px;\">Aucune recette trouvée. Essayez d'assouplir les contraintes.</div>`);
+                                return;
+                            }
+                            const cards = data.recipes.map(r => `
+                                <div style=\"border:1px solid #eee; border-radius:8px; padding:8px; margin-bottom:8px; display:flex; gap:8px;\">
+                                    ${r.image ? `<img src=\"${r.image}\" alt=\"${r.title}\" style=\"width:64px; height:64px; object-fit:cover; border-radius:6px;\">` : ''}
+                                    <div style=\"flex:1;\">
+                                        <div style=\"font-weight:600;\">${r.title}</div>
+                                        <div style=\"font-size:12px; color:#666;\">${r.readyInMinutes ?? '?'} min • ${r.calories ?? '?'} kcal • Prot ${r.protein ?? '?'}g • Sucre ${r.sugar ?? '?'}g</div>
+                                        ${r.sourceUrl ? `<a href=\"${r.sourceUrl}\" target=\"_blank\" style=\"font-size:12px; color:#2E7D32;\">Voir la recette</a>` : ''}
+                                    </div>
+                                </div>
+                            `).join('');
+                            addMessage(cards);
+                        } else {
+                            addMessage(`<div style=\"color:#b91c1c;\">Erreur: ${data.message}</div>`);
+                        }
+                    }catch(e){
+                        addMessage(`<div style=\"color:#b91c1c;\">Erreur réseau: ${e}</div>`);
+                    }
+                });
+            }
+        })();
+        </script>
         
         {% block javascripts_end %}
         {% endblock %}
